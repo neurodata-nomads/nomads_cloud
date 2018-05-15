@@ -10,7 +10,7 @@ Installation Instructions:
 You should see a web form where you can submit synapse detection jobs to AWS batch. 
 
 Documentation Links:
-1. [Service Documentation](https://nbviewer.jupyter.org/github/neurodata-nomads/nomads_cloud/blob/master/docs/Service%20Documentation.ipynb)
+1. [Web Service Documentation](https://nbviewer.jupyter.org/github/neurodata-nomads/nomads_cloud/blob/master/docs/Web%20Service%20Documentation.ipynb)
 2. [Useful Modules for Synapse Pipelines](https://nbviewer.jupyter.org/github/neurodata-nomads/nomads_cloud/blob/master/docs/Useful%20Modules%20for%20Synapse%20Pipelines.ipynb)
 
 
