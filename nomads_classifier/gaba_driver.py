@@ -12,14 +12,18 @@ def get_cubes(raw_data, centroids):
     centroids : list
         In [z, y, x] format
     """
-    exclude_list = ['dapi', 'mbp']
+    """exclude_list = ['dapi', 'mbp']
     channels = [x for x in raw_data.keys() if x.lower() not in exclude_list]
-    channels = list(raw_data.keys())
+    channels = list(raw_data.keys())"""
+
+    channels, _ = get_channels(raw_data.keys())
+
     max_size = raw_data[channels[0]].shape
     centroids = np.array(centroids)
 
     cube_size = (7, 4, 4)  # Results in 15 x 9 x 9 cubes
     out = []
+    ids = []
 
     for row in centroids:
         cubes = []
@@ -27,9 +31,9 @@ def get_cubes(raw_data, centroids):
 
         for chan in channels:
             data = raw_data[chan]
-            z_idx = (z - cube_size[0], z + cube_size[0])
-            y_idx = (y - cube_size[1], y + cube_size[1])
-            x_idx = (x - cube_size[2], x + cube_size[2])
+            z_idx = (z - cube_size[0], z + cube_size[0] + 1)
+            y_idx = (y - cube_size[1], y + cube_size[1] + 1)
+            x_idx = (x - cube_size[2], x + cube_size[2] + 1)
 
             # Dont deal with cubes on the edge of data
             if (z_idx[0] >= 0) and (y_idx[0] >= 0) and (x_idx[0] >= 0) and (
@@ -38,11 +42,33 @@ def get_cubes(raw_data, centroids):
                 cube = data[z_idx[0]:z_idx[1], y_idx[0]:y_idx[1], x_idx[0]:
                             x_idx[1]]
                 cubes.append(cube)
+                ids.append(1)
+            else:
+                ids.append(0)
+
         # Flatten array
         out.append(np.array(cubes, dtype=np.uint8).ravel())
 
-    return np.array(out, dtype=np.uint8)
+    return np.array(out, dtype=np.uint8), np.asarray(ids)
 
+
+def get_channels(dict_keys):
+    include_list = [
+        'GABA', 'GAD', 'Gephyrin', 'GluN', 'PSD', 'synapsin', 'TdTomato',
+        'VGlut'
+    ]
+
+    out_include_list = []
+    out = []
+
+    for include_key in include_list:
+        for input_key in dict_keys:
+            if include_key.lower() in input_key.lower():
+                out.append(input_key)
+                out_include_list.append(include_key)
+                break
+
+    return out, out_include_list
 
 def create_channel(dimensions, centroids):
     data = np.zeros(dimensions, dtype=np.uint8)
@@ -63,7 +89,7 @@ def gaba_classifier_pipeline(raw_data, centroids):
     centroids : list
         In [z, y, x] format
     """
-    X = get_cubes(raw_data, centroids)
+    X, ids = get_cubes(raw_data, centroids)
     centroids = np.array(centroids)
     channels = [x for x in raw_data.keys()]
     channels = list(raw_data.keys())
@@ -84,10 +110,13 @@ def gaba_classifier_pipeline(raw_data, centroids):
 
     predictions = model.predict(X)
 
-    gaba_centroids = centroids[predictions == 1]
-    ext_centroids = centroids[predictions == 0]
+    # gaba_centroids = centroids[predictions == 1]
+    # ext_centroids = centroids[predictions == 0]
 
-    gaba_channel = create_channel(max_size, gaba_centroids)
-    ext_channels = create_channel(max_size, ext_centroids)
+    # gaba_channel = create_channel(max_size, gaba_centroids)
+    # ext_channels = create_channel(max_size, ext_centroids)
 
-    return gaba_channel, ext_channels
+    # Relabel things
+    ids[ids==1][predictions==1] = 2
+
+    return ids

@@ -5,8 +5,7 @@ import argparse
 import pickle
 import numpy as np
 import boto3, glob
-from nd_boss import boss_push
-import csv
+
 
 # pull data from BOSS
 def get_data(host, token, col, exp, z_range, y_range, x_range):
@@ -19,23 +18,9 @@ def get_data(host, token, col, exp, z_range, y_range, x_range):
     data_dict = {}
     for chan in resource.channels:
         data_dict[chan] = resource.get_cutout(chan, z_range, y_range, x_range)
-    return data_dict, resource.voxel_size
-
-# normalize data
-def load_and_preproc(data_dict, z_transform=True):
-    raw = data_dict
-    if z_transform:
-        for channel in raw.keys():
-            #dont want to z transform annotations
-            if channel != 'annotation':
-                data = raw[channel]
-
-                #get z transform stats
-                for z_idx in range(data.shape[0]):
-                    mu = np.mean(data[z_idx])
-                    sigma = np.std(data[z_idx])
-                    raw[channel][z_idx] = (raw[channel][z_idx] - mu)/sigma
-    return raw
+    return data_dict
+    
+    
     
 def format_data(data_dict):
     data = []
@@ -55,6 +40,8 @@ def format_data(data_dict):
     data = np.stack(data)
     return data
     
+    
+    
 def run_nomads(data_dict):
     print("Beginning NOMADS Pipeline...")
     input_data = format_data(data_dict)
@@ -65,62 +52,45 @@ def run_nomads(data_dict):
     print("Finished NOMADS Pipeline.")
     return results
     
+    
+    
 def upload_results(path, results_key):
     client = boto3.client('s3')
-    s3 = boto3.resource('s3')
     s3_bucket_exists_waiter = client.get_waiter('bucket_exists')
     bucket = client.create_bucket(Bucket="nomads-unsupervised-results")
     s3_bucket_exists_waiter.wait(Bucket="nomads-unsupervised-results")
-
-    bucket = s3.Bucket("nomads-unsupervised-results")
-    bucket.Acl().put(ACL='public-read')
     files = glob.glob(path+"*")
     for file in files:
         key = results_key + "/" + file.split("/")[-1]
         client.upload_file(file, "nomads-unsupervised-results", key)
-        response = client.put_object_acl(ACL='public-read', Bucket="nomads-unsupervised-results", \
-        Key=key)
-    return 
+    return
 
-## PLEASE HAVE "/"" AT END OF PATH
+    
+    
+## PLEASE HAVE / AT END OF PATH
 ## BETTER YET DONT TOUCH PATH
 def driver(host, token, col, exp, z_range, y_range, x_range, path = "./results/"):
     
-    print("Starting Nomads Unsupervised...")
+    print("Generating PyMeda Plots...")
     info = locals()
-    data_dict, voxel_size = get_data(host, token, col, exp, z_range, y_range, x_range)
+    data_dict = get_data(host, token, col, exp, z_range, y_range, x_range)
     
     results = run_nomads(data_dict)
-    results = results.astype(np.uint8)
-    np.putmask(results, results, 255)
-
-    results_key = "_".join(["nomads-unsupervised", col, exp, "z", str(z_range[0]), str(z_range[1]), "y", \
+    
+    results_key = "_".join(["nomads", col, exp, "z", str(z_range[0]), str(z_range[1]), "y", \
     str(y_range[0]), str(y_range[1]), "x", str(x_range[0]), str(x_range[1])])
     
-    pickle.dump(results, open(path + "nomads-unsupervised-predictions" + ".pkl", "wb"))
-    print("Saved pickled results (np array) {} in {}".format("nomads-unsupervised-predictions.pkl", path))
+    pickle.dump(results, open(path + results_key + ".pkl", "wb"))
+    print("Saved pickled results (np array) {} in {}".format(results_key, path))
     
-    print("Generating PyMeda Plots...")
-    
-    norm_data = load_and_preproc(data_dict)
-    try:
-        pymeda_driver.pymeda_pipeline(results, norm_data, title = "PyMeda Plots on All Predicted Synapses", path = path)
-    except:
-        print("Not generating plots for all synapses, no predictions classified as Gaba")
-    print("Uploading results...")
-    #results = pickle.load(open("./results/nomads-unsupervised-predictions.pkl", "rb"))
-    
-    boss_links = boss_push(token, "collman_nomads", "nomads_predictions", z_range, y_range, x_range, {results_key: results})
-    with open('results/NDVIS_links.csv', 'w') as csv_file:
-        writer = csv.writer(csv_file)
-        for key, value in boss_links.items():
-            writer.writerow([key, value])
-        
+    title = "PyMeda Plots on {}".format(exp)
+    pymeda_driver.pymeda_pipeline(results, data_dict, title = title, path = path)
     
     upload_results(path, results_key)
-        
-    return info, results, , boss_links
+    return info, results
     
+    
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NOMADS and PyMeda driver.')
     parser.add_argument('--host', required = True, type=str, help='BOSS Api host, do not include "https"')

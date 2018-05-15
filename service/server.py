@@ -4,9 +4,10 @@ import boto3
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import pickle
 
 SENDER = 'NOMADSPipeline@gmail.com'
-PASSWORD = 'justlookatit'
+PASSWORD = pickle.load(open("password.pkl", "rb"))
 
 
 def send_email(url, recipient):
@@ -17,7 +18,6 @@ def send_email(url, recipient):
       <head></head>
       <body>
         <p>Hi!<br>
-           How are you?<br>
            Here is the <a href="{}">link</a> to Nomads-Unsupervised Results.
         </p>
       </body>
@@ -62,8 +62,12 @@ def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
         
     if pipeline == "nomads-classifier":
         bucket = client.create_bucket(Bucket="nomads-classifier-results")
+        s3 = boto3.resource("s3")
+        bucket = s3.Bucket("nomads-classifier-results")
         bucket.Acl().put(ACL='public-read')
-        s3_bucket_exists_waiter.wait(Bucket="nomads-classifier-results")
+        
+        url = "https://s3.console.aws.amazon.com/s3/buckets/nomads-classifier-results/{}/?region=us-east-1&tab=overview".format(job_name)
+        send_email(url, email)
         
         
     client = boto3.client("batch")
