@@ -6,8 +6,7 @@ import pymeda
 import sys, os
 import pickle
 
-    
-    
+
 def label_predictions(result):
     synapse_labels = measure.label(result, background=0)
     connected_components = {}
@@ -19,7 +18,7 @@ def label_predictions(result):
                 else:
                     connected_components[synapse_labels[z][y][x]] = [(z, y, x)]
     connected_components.pop(0)
-    return connected_components
+    return connected_components, synapse_labels
 
 # Input: dictionary of connected_components
 def calculate_synapse_centroids(connected_components):
@@ -43,7 +42,7 @@ def get_aggregate_sum(synapse_centroids, data):
         x_upper = x + 5
         # prob a better way but w/e tired rn
         # ignore boundary synapses
-        
+
         if z_lower < 0 or z_upper >= z_max:
             continue
         if y_lower < 0 or y_upper >= y_max:
@@ -62,6 +61,7 @@ def get_data_frame(data_dict):
 def pymeda_pipeline(predictions, raw_data, title = "PyMeda Plots", cluster_levels = 2, path = "./"):
     connected_components = label_predictions(predictions)
     synapse_centroids = calculate_synapse_centroids(connected_components)
+    print(len(synapse_centroids))
     features = get_aggregate_sum(synapse_centroids, raw_data)
     df = get_data_frame(features)
     sys.stdout = open(os.devnull, 'w')

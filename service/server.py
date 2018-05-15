@@ -4,26 +4,26 @@ import boto3
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import pickle
 
 SENDER = 'NOMADSPipeline@gmail.com'
-PASSWORD = 'justlookatit'
+PASSWORD = pickle.load(open("password.pkl", "rb"))
 
 
-def send_email(url, recipient):
-    
+def send_email(url, recipient, pipeline):
+
     #text = "Hi!\nHere is the link for Nomads Unsupervised results:\n{}}".format("url")
     html = """\
     <html>
       <head></head>
       <body>
         <p>Hi!<br>
-           How are you?<br>
-           Here is the <a href="{}">link</a> to Nomads-Unsupervised Results.
+           Here is the <a href="{}">link</a> to {} Results.
         </p>
       </body>
     </html>
-    """.format(url)
-    
+    """.format(url, pipeline)
+
     msg = MIMEText(html, "html")
 
     server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -36,36 +36,40 @@ def send_email(url, recipient):
 app = Flask(__name__)
 
 def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
-    
+
     try:
         z_range_proc = list(map(int, z_range.split(",")))
         y_range_proc = list(map(int, y_range.split(",")))
         x_range_proc = list(map(int, x_range.split(",")))
     except:
         print("Job not submitted, dimensions not correctly formmated")
-        
+
     job_name = "_".join([pipeline, col, exp, "z", str(z_range_proc[0]), str(z_range_proc[1]), "y", \
     str(y_range_proc[0]), str(y_range_proc[1]), "x", str(x_range_proc[0]), str(x_range_proc[1])])
-    
+
     client = boto3.client('s3')
-    
+
     s3_bucket_exists_waiter = client.get_waiter('bucket_exists')
-    
+
     if pipeline == "nomads-unsupervised":
         bucket = client.create_bucket(Bucket="nomads-unsupervised-results")
         s3 = boto3.resource("s3")
         bucket = s3.Bucket("nomads-unsupervised-results")
         bucket.Acl().put(ACL='public-read')
-        
+
         url = "https://s3.console.aws.amazon.com/s3/buckets/nomads-unsupervised-results/{}/?region=us-east-1&tab=overview".format(job_name)
-        send_email(url, email)
-        
+        send_email(url, email, pipeline)
+
     if pipeline == "nomads-classifier":
         bucket = client.create_bucket(Bucket="nomads-classifier-results")
+        s3 = boto3.resource("s3")
+        bucket = s3.Bucket("nomads-classifier-results")
         bucket.Acl().put(ACL='public-read')
-        s3_bucket_exists_waiter.wait(Bucket="nomads-classifier-results")
-        
-        
+
+        url = "https://s3.console.aws.amazon.com/s3/buckets/nomads-classifier-results/{}/?region=us-east-1&tab=overview".format(job_name)
+        send_email(url, email, pipeline)
+
+
     client = boto3.client("batch")
     response = client.describe_compute_environments(
         computeEnvironments=[
@@ -103,7 +107,7 @@ def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
             serviceRole='AWSBatchServiceRole',
             state='ENABLED',
         )
-    
+
     response = client.describe_job_queues(jobQueues=["nomads-queue"])
     if len(response["jobQueues"]) == 0:
         response = client.create_job_queue(
@@ -117,7 +121,7 @@ def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
                 },
             ]
         )
-    
+
     response = client.describe_job_definitions(
         jobDefinitionName=pipeline,
         status='ACTIVE',
@@ -171,7 +175,7 @@ def register_nomads_unsupervised(client):
         },
         jobDefinitionName="nomads-unsupervised",
     )
-    
+
 def register_nomads_classifier(client):
     response = client.register_job_definition(
         type='container',
@@ -186,7 +190,7 @@ def register_nomads_classifier(client):
         },
         jobDefinitionName="nomads-classifier",
     )
-        
+
 @app.route("/", methods = ["GET"])
 def index():
     client = boto3.client("batch")
@@ -200,15 +204,15 @@ def submit():
     z_range = request.form["z_range"].replace(" ", "")
     y_range = request.form["y_range"].replace(" ", "")
     x_range = request.form["x_range"].replace(" ", "")
-    
+
     pipeline = request.form["pipeline"]
     email = request.form["email"]
     host = "api.boss.neurodata.io"
     submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range)
-    
-    
+
+
     return redirect(url_for("index"))
-    
+
 @app.route("/complete", methods = ["GET", "POST"])
 def complete():
     pass
@@ -217,4 +221,3 @@ if __name__ == "__main__":
     #send_email("blah", "brandonduderstadt@gmail.com")
     #submit_job("edef359a8de270163c911dcef5d467a72348d68d", "collman", "M247514_Rorb_1_light", "40,45", "6500,7000", "6500,7000")
     app.run(debug = True, port = 8000, threaded = True)
-

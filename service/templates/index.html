@@ -32,7 +32,7 @@
 
 	<div class="container-contact100">
 		<div class="wrap-contact100">
-			<form class="contact100-form validate-form" action = "/submit" method = "post" onSubmit="alert('Job submitted. Check S3 for results.');">
+			<form class="contact100-form validate-form" action = "/submit" method = "post" onSubmit="alert('Job submitted. Check email for results.');">
 				<span class="contact100-form-title">
 					Nomads <br />
 					<font size = "3" >
@@ -46,19 +46,19 @@
 					<input id="name" class="input100" type="text" name="token" placeholder="Enter your API Token..." required>
 					<span class="focus-input100"></span>
 				</div>
-				
+
 				<div class="wrap-input100 validate-input" data-validate="Collection is required">
 					<label class="label-input100" for="name">Collection</label>
 					<input id="name" class="input100" type="text" name="col" placeholder="Enter your collection..." required>
 					<span class="focus-input100"></span>
 				</div>
-				
+
 				<div class="wrap-input100 validate-input" data-validate="Experiment is required">
 					<label class="label-input100" for="name">Experiment</label>
 					<input id="name" class="input100" type="text" name="exp" placeholder="Enter your experiment..." required>
 					<span class="focus-input100"></span>
 				</div>
-				
+
 				<div class="wrap-input100 validate-input" data-validate="Z Range is required">
 					<label class="label-input100" for="name">Z Range</label>
 					<input id="name" class="input100" type="text" name="z_range" placeholder="Enter Z range, separate by comma..." required>
@@ -70,19 +70,19 @@
 					<input id="name" class="input100" type="text" name="y_range" placeholder="Enter Y range, separate by comma..." required>
 					<span class="focus-input100"></span>
 				</div>
-				
+
 				<div class="wrap-input100 validate-input" data-validate="X Range is required">
 					<label class="label-input100" for="name">X Range</label>
 					<input id="name" class="input100" type="text" name="x_range" placeholder="Enter X range, separate by comma..." required>
 					<span class="focus-input100"></span>
 				</div>
-				
+
 				<div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz">
 					<label class="label-input100" for="email">Email Address</label>
 					<input id="email" class="input100" type="text" name="email" placeholder="Enter your email...">
 					<span class="focus-input100"></span>
 				</div>
-				
+
 				<div class="wrap-input100" data-validate="Pipeline choice is required">
 					<div class="label-input100">Which pipeline to run?</div>
 					<div>
@@ -124,7 +124,7 @@
 						<font color = "white">
 							This service will run the NOMADS unsupervised algorithm and PyMeda on data stored in the BOSS.
 							The algorithm will be launched on the AWS Batch compute environment and download the results into S3.
-							Requirements to run this service include access to the BOSS Data Storage and access to AWS. 
+							Requirements to run this service include access to the BOSS Data Storage and access to AWS.
 							<br />
 							<br />
 							More features incoming!
