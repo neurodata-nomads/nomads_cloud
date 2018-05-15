@@ -11,8 +11,7 @@ You should see a web form where you can submit synapse detection jobs to AWS bat
 
 Documentation Links:
 1. [Service Documentation](https://nbviewer.jupyter.org/github/neurodata-nomads/nomads_cloud/blob/master/docs/Service%20Documentation.ipynb)
-2. Useful Modules for Synapse Pipelines
-3. How to Add New Pipelines
+2. [Useful Modules for Synapse Pipelines](https://nbviewer.jupyter.org/github/neurodata-nomads/nomads_cloud/blob/master/docs/Useful%20Modules%20for%20Synapse%20Pipelines.ipynb)
 
 
 
