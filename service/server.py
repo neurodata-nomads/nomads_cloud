@@ -6,6 +6,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import pickle
 
+app = Flask(__name__)
+
 SENDER = 'NOMADSPipeline@gmail.com'
 PASSWORD = pickle.load(open("password.pkl", "rb"))
 
@@ -32,9 +34,6 @@ def send_email(url, recipient, pipeline):
     server.sendmail(SENDER, recipient, msg.as_string())
     server.quit()
 
-
-app = Flask(__name__)
-
 def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
 
     try:
@@ -42,7 +41,7 @@ def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
         y_range_proc = list(map(int, y_range.split(",")))
         x_range_proc = list(map(int, x_range.split(",")))
     except:
-        print("Job not submitted, dimensions not correctly formmated")
+        return Exception("Job not submitted, dimensions not correctly formmated")
 
     job_name = "_".join([pipeline, col, exp, "z", str(z_range_proc[0]), str(z_range_proc[1]), "y", \
     str(y_range_proc[0]), str(y_range_proc[1]), "x", str(x_range_proc[0]), str(x_range_proc[1])])
@@ -129,6 +128,7 @@ def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
             register_nomads_unsupervised(client)
         if pipeline == "nomads-classifier":
             register_nomads_classifier(client)
+            
     response = client.submit_job(
         jobName=job_name,
         jobQueue='nomads-queue',
@@ -189,11 +189,20 @@ def register_nomads_classifier(client):
         jobDefinitionName="nomads-classifier",
     )
 
+'''
+    Index Route 
+        Returns index.html template (loads web form)
+'''
+
 @app.route("/", methods = ["GET"])
 def index():
     client = boto3.client("batch")
     return render_template("index.html")
-
+    
+'''
+    Submit Route 
+        Upon form submission, this route submits a batch computing job and redirects back to home
+'''
 @app.route("/submit", methods = ["GET", "POST"])
 def submit():
     token = request.form["token"]
