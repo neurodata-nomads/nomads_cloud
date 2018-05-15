@@ -18,7 +18,11 @@ def send_email(url, recipient, pipeline):
       <head></head>
       <body>
         <p>Hi!<br>
+<<<<<<< HEAD
            Here is the <a href="{}">link</a> to {} Results.
+=======
+           Here is the <a href="{}">link</a> to Nomads-Unsupervised Results.
+>>>>>>> e80f2ddbe017550a6666536c59cdddfab8d88ced
         </p>
       </body>
     </html>
@@ -65,11 +69,19 @@ def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
         s3 = boto3.resource("s3")
         bucket = s3.Bucket("nomads-classifier-results")
         bucket.Acl().put(ACL='public-read')
+<<<<<<< HEAD
 
         url = "https://s3.console.aws.amazon.com/s3/buckets/nomads-classifier-results/{}/?region=us-east-1&tab=overview".format(job_name)
         send_email(url, email, pipeline)
 
 
+=======
+        
+        url = "https://s3.console.aws.amazon.com/s3/buckets/nomads-classifier-results/{}/?region=us-east-1&tab=overview".format(job_name)
+        send_email(url, email)
+        
+        
+>>>>>>> e80f2ddbe017550a6666536c59cdddfab8d88ced
     client = boto3.client("batch")
     response = client.describe_compute_environments(
         computeEnvironments=[

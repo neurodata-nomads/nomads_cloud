@@ -24,7 +24,10 @@ def get_cubes(raw_data, centroids):
     cube_size = (7, 4, 4)  # Results in 15 x 9 x 9 cubes
     out = []
     ids = []
+<<<<<<< HEAD
 
+=======
+>>>>>>> e80f2ddbe017550a6666536c59cdddfab8d88ced
 
     for row in centroids:
         cubes = []
@@ -53,6 +56,12 @@ def get_cubes(raw_data, centroids):
                 cube = data[z_idx[0]:z_idx[1], y_idx[0]:y_idx[1], x_idx[0]:
                             x_idx[1]]
                 cubes.append(cube)
+<<<<<<< HEAD
+=======
+                ids.append(1)
+            else:
+                ids.append(0)
+>>>>>>> e80f2ddbe017550a6666536c59cdddfab8d88ced
 
         # Flatten array
         if len(cubes) != 0:
@@ -60,6 +69,11 @@ def get_cubes(raw_data, centroids):
 
     return np.array(out, dtype=np.uint8), np.asarray(ids)
 
+<<<<<<< HEAD
+=======
+    return np.array(out, dtype=np.uint8), np.asarray(ids)
+
+>>>>>>> e80f2ddbe017550a6666536c59cdddfab8d88ced
 
 def get_channels(dict_keys):
     include_list = [
@@ -126,6 +140,7 @@ def gaba_classifier_pipeline(raw_data, centroids):
     # ext_channels = create_channel(max_size, ext_centroids)
 
     # Relabel things
+<<<<<<< HEAD
     pointer = 0
     print('ids: ', ids)
     for idx, val in enumerate(ids):
@@ -133,5 +148,8 @@ def gaba_classifier_pipeline(raw_data, centroids):
             if predictions[pointer] == 1:
                 ids[val] = 2
             pointer += 1
+=======
+    ids[ids==1][predictions==1] = 2
+>>>>>>> e80f2ddbe017550a6666536c59cdddfab8d88ced
 
     return ids

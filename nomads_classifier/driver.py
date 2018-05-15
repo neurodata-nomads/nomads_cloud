@@ -117,12 +117,17 @@ def driver(host, token, col, exp, z_range, y_range, x_range, path = "./results/"
     connected_components, label_vol = pymeda_driver.label_predictions(results)
     synapse_centroids = pymeda_driver.calculate_synapse_centroids(connected_components)
 
+<<<<<<< HEAD
     print('Labeled syns: ', np.max(label_vol))
     class_list = gaba_classifier_pipeline(data_dict, synapse_centroids)
     print('class 0: ', len([elem for elem in class_list if elem == 0]))
     print('class 1: ', len([elem for elem in class_list if elem == 1]))
     print('class 2: ', len([elem for elem in class_list if elem == 2]))
 
+=======
+
+    class_list = gaba_classifier_pipeline(data_dict, synapse_centroids)
+>>>>>>> e80f2ddbe017550a6666536c59cdddfab8d88ced
     no_pred_vol, non_gaba_vol, gaba_vol = split_vol_by_id(label_vol, class_list, 3)
 
     pickle.dump(gaba_vol, open(path + "gaba" + ".pkl", "wb"))
@@ -147,7 +152,11 @@ def driver(host, token, col, exp, z_range, y_range, x_range, path = "./results/"
 
     print("Uploading results...")
     data_dict = {"All": results, "Gaba": gaba_vol, "NonGaba": non_gaba_vol}
+<<<<<<< HEAD
     boss_links = boss_push(token, "collman_nomads", "nomads_predictions", z_range, y_range, x_range, data_dict, results_key)
+=======
+    boss_links = boss_push(token, "collman_nomads", "nomads_predictions", z_range, y_range, x_range, data_dict)
+>>>>>>> e80f2ddbe017550a6666536c59cdddfab8d88ced
     with open('results/NDVIS_links.csv', 'w') as csv_file:
         writer = csv.writer(csv_file)
         for key, value in boss_links.items():

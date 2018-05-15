@@ -80,7 +80,11 @@ def upload_results(path, results_key):
         client.upload_file(file, "nomads-unsupervised-results", key)
         response = client.put_object_acl(ACL='public-read', Bucket="nomads-unsupervised-results", \
         Key=key)
+<<<<<<< HEAD
     return
+=======
+    return 
+>>>>>>> e80f2ddbe017550a6666536c59cdddfab8d88ced
 
 ## PLEASE HAVE "/"" AT END OF PATH
 ## BETTER YET DONT TOUCH PATH
@@ -115,12 +119,21 @@ def driver(host, token, col, exp, z_range, y_range, x_range, path = "./results/"
         writer = csv.writer(csv_file)
         for key, value in boss_links.items():
             writer.writerow([key, value])
+<<<<<<< HEAD
 
 
     upload_results(path, results_key)
 
     return info, results, , boss_links
 
+=======
+        
+    
+    upload_results(path, results_key)
+        
+    return info, results, , boss_links
+    
+>>>>>>> e80f2ddbe017550a6666536c59cdddfab8d88ced
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NOMADS and PyMeda driver.')
     parser.add_argument('--host', required = True, type=str, help='BOSS Api host, do not include "https"')
