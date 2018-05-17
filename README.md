@@ -2,7 +2,10 @@
 This repository contains a web service for running synapse detection algorithms on AWS. An example pipeline, Nomads-unsupervised is provided to demonstrate how to add new pipelines to this service. The Nomads-unsupervised directory also contains useful code for a fully integrating an algorithm with NDVis, BOSS, and PyMeda.
 
 Installation Instructions:  
-0.1 Prerequisites: Have AWS-Cli (logged in) and Python3 installed on computer. Instructions on how to install and log into AWS [here](https://docs.aws.amazon.com/cli/latest/userguide/installing.html).
+0.1 Prerequisites: Have AWS-Cli (logged in) and Python3 installed on computer.  
+Instructions on how to install into AWS [here](https://docs.aws.amazon.com/cli/latest/userguide/installing.html).  
+Instructions on how to log into AWS [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).
+
 1. Enter the service directory and run "pip3 install -r requirements.txt"
 2. Run "python3 server.py"
 3. Go to http://localhost:8000
