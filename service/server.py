@@ -39,7 +39,7 @@ def create_aws_session(access_key = None, secret_key = None):
     session = boto3.session.Session(aws_access_key_id = access_key, aws_secret_access_key = secret_key, region_name = "us-east-1")
     return session
 
-def submit_job(bucket_name, email, pipeline, token, col, exp, z_range, y_range, x_range):
+def submit_job(session, bucket_name, email, pipeline, token, col, exp, z_range, y_range, x_range):
 
     try:
         z_range_proc = list(map(int, z_range.split(",")))
@@ -51,7 +51,7 @@ def submit_job(bucket_name, email, pipeline, token, col, exp, z_range, y_range, 
     job_name = "_".join([pipeline, col, exp, "z", str(z_range_proc[0]), str(z_range_proc[1]), "y", \
     str(y_range_proc[0]), str(y_range_proc[1]), "x", str(x_range_proc[0]), str(x_range_proc[1])])
 
-    s3_client = boto3.client('s3')
+    s3_client = session.client('s3')
 
     s3_bucket_exists_waiter = s3_client.get_waiter('bucket_exists')
     try:
@@ -67,7 +67,7 @@ def submit_job(bucket_name, email, pipeline, token, col, exp, z_range, y_range, 
     send_email(url, email, pipeline)
 
 
-    client = boto3.client("batch")
+    client = session.client("batch")
     response = client.describe_compute_environments(
         computeEnvironments=[
             'nomads-ce',
@@ -197,6 +197,8 @@ def index():
 
 @app.route("/submit", methods = ["GET", "POST"])
 def submit():
+    aws_access = request.form["access"]
+    aws_secret = request.form["secret"]
     aws_bucket = request.form["bucket"]
 
     token = request.form["token"]
@@ -209,8 +211,8 @@ def submit():
     pipeline = request.form["pipeline"]
     email = request.form["email"]
     host = "api.boss.neurodata.io"
-    #session = create_aws_session(aws_access, aws_secret)
-    submit_job(aws_bucket, email, pipeline, token, col, exp, z_range, y_range, x_range)
+    session = create_aws_session(aws_access, aws_secret)
+    submit_job(session, aws_bucket, email, pipeline, token, col, exp, z_range, y_range, x_range)
 
 
     return redirect(url_for("index"))

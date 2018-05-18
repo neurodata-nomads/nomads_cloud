@@ -43,6 +43,18 @@
 				Amazon Web Services Information
 
 				<div class="wrap-input100 validate-input">
+					<label class="label-input100" for="name">AWS Access Key</label>
+					<input id="name" class="input100" type="text" name="access" placeholder="Enter your AWS Access Key..." required>
+					<span class="focus-input100"></span>
+				</div>
+
+				<div class="wrap-input100 validate-input">
+					<label class="label-input100" for="name">AWS Secret Key</label>
+					<input id="name" class="input100" type="text" name="secret" placeholder="Enter your AWS Secret Key..." required>
+					<span class="focus-input100"></span>
+				</div>
+
+				<div class="wrap-input100 validate-input">
 					<label class="label-input100" for="name">AWS Bucket Key</label>
 					<input id="name" class="input100" type="text" name="bucket" placeholder="Enter your AWS Bucket Key..." required>
 					<span class="focus-input100"></span>
@@ -136,7 +148,8 @@
 							<br />
 							<br />
 							In order for you to use this service, you need a BOSS API key with permissions to push to the channel
-							"collman_nomads" and the experiment "nomads_predictions". Contact the NeuroData team for assistance. 
+							"collman_nomads" and the experiment "nomads_predictions". Contact the NeuroData team for assistance. Since this
+							is also an AWS service, you must also provide an AWS Access Key, Secret Key, and Bucket.
 							Instructions <a href = ""><font color = "1BFF00">here</font></a>
 							<br />
 							<br />
