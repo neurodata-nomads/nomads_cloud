@@ -40,7 +40,27 @@
 					</font>
 				</span>
 
+				Amazon Web Services Information
 
+				<div class="wrap-input100 validate-input">
+					<label class="label-input100" for="name">AWS Access Key</label>
+					<input id="name" class="input100" type="text" name="access" placeholder="Enter your AWS Access Key..." required>
+					<span class="focus-input100"></span>
+				</div>
+
+				<div class="wrap-input100 validate-input">
+					<label class="label-input100" for="name">AWS Secret Key</label>
+					<input id="name" class="input100" type="text" name="secret" placeholder="Enter your AWS Secret Key..." required>
+					<span class="focus-input100"></span>
+				</div>
+
+				<div class="wrap-input100 validate-input">
+					<label class="label-input100" for="name">AWS Bucket Key</label>
+					<input id="name" class="input100" type="text" name="bucket" placeholder="Enter your AWS Bucket Key..." required>
+					<span class="focus-input100"></span>
+				</div>
+
+				BOSS Information
 				<div class="wrap-input100 validate-input">
 					<label class="label-input100" for="name">BOSS API Token</label>
 					<input id="name" class="input100" type="text" name="token" placeholder="Enter your API Token..." required>
@@ -76,12 +96,7 @@
 					<input id="name" class="input100" type="text" name="x_range" placeholder="Enter X range, separate by comma..." required>
 					<span class="focus-input100"></span>
 				</div>
-
-				<div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz">
-					<label class="label-input100" for="email">Email Address</label>
-					<input id="email" class="input100" type="text" name="email" placeholder="Enter your email...">
-					<span class="focus-input100"></span>
-				</div>
+				Job Information:
 
 				<div class="wrap-input100" data-validate="Pipeline choice is required">
 					<div class="label-input100">Which pipeline to run?</div>
@@ -96,6 +111,11 @@
 					<span class="focus-input100"></span>
 				</div>
 
+				<div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz">
+					<label class="label-input100" for="email">Email Address</label>
+					<input id="email" class="input100" type="text" name="email" placeholder="Email results will be sent too...">
+					<span class="focus-input100"></span>
+				</div>
 				<div class="container-contact100-form-btn">
 					<button class="contact100-form-btn" value = "Submit">
 						Send
@@ -125,6 +145,12 @@
 							This service will run the NOMADS unsupervised algorithm and PyMeda on data stored in the BOSS.
 							The algorithm will be launched on the AWS Batch compute environment and download the results into S3.
 							Requirements to run this service include access to the BOSS Data Storage and access to AWS.
+							<br />
+							<br />
+							In order for you to use this service, you need a BOSS API key with permissions to push to the channel
+							"collman_nomads" and the experiment "nomads_predictions". Contact the NeuroData team for assistance. Since this
+							is also an AWS service, you must also provide an AWS Access Key, Secret Key, and Bucket.
+							Instructions <a href = ""><font color = "1BFF00">here</font></a>
 							<br />
 							<br />
 							More features incoming!

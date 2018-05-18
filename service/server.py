@@ -6,8 +6,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import pickle
 
-app = Flask(__name__)
-
 SENDER = 'NOMADSPipeline@gmail.com'
 PASSWORD = pickle.load(open("password.pkl", "rb"))
 
@@ -34,40 +32,42 @@ def send_email(url, recipient, pipeline):
     server.sendmail(SENDER, recipient, msg.as_string())
     server.quit()
 
-def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
+
+app = Flask(__name__)
+
+def create_aws_session(access_key = None, secret_key = None):
+    session = boto3.session.Session(aws_access_key_id = access_key, aws_secret_access_key = secret_key, region_name = "us-east-1")
+    return session
+
+def submit_job(session, bucket_name, email, pipeline, token, col, exp, z_range, y_range, x_range):
 
     try:
         z_range_proc = list(map(int, z_range.split(",")))
         y_range_proc = list(map(int, y_range.split(",")))
         x_range_proc = list(map(int, x_range.split(",")))
     except:
-        return Exception("Job not submitted, dimensions not correctly formmated")
+        print("Job not submitted, dimensions not correctly formmated")
 
     job_name = "_".join([pipeline, col, exp, "z", str(z_range_proc[0]), str(z_range_proc[1]), "y", \
     str(y_range_proc[0]), str(y_range_proc[1]), "x", str(x_range_proc[0]), str(x_range_proc[1])])
 
-    client = boto3.client('s3')
+    s3_client = session.client('s3')
 
-    s3_bucket_exists_waiter = client.get_waiter('bucket_exists')
-
-    if pipeline == "nomads-unsupervised":
-        bucket = client.create_bucket(Bucket="nomads-unsupervised-results")
+    s3_bucket_exists_waiter = s3_client.get_waiter('bucket_exists')
+    try:
+        bucket = s3_client.create_bucket(Bucket=bucket_name)
         s3 = boto3.resource("s3")
-        bucket = s3.Bucket("nomads-unsupervised-results")
+        bucket = s3.Bucket(bucket_name)
         bucket.Acl().put(ACL='public-read')
+    except:
+        print("bucket fail")
+        raise
 
-        url = "https://s3.console.aws.amazon.com/s3/buckets/nomads-unsupervised-results/{}/?region=us-east-1&tab=overview".format(job_name)
-        send_email(url, email, pipeline)
+    url = "https://s3.console.aws.amazon.com/s3/buckets/{}/{}/?region=us-east-1&tab=overview".format(bucket_name, job_name)
+    send_email(url, email, pipeline)
 
-    if pipeline == "nomads-classifier":
-        bucket = client.create_bucket(Bucket="nomads-classifier-results")
-        s3 = boto3.resource("s3")
-        bucket = s3.Bucket("nomads-classifier-results")
-        bucket.Acl().put(ACL='public-read')
-        url = "https://s3.console.aws.amazon.com/s3/buckets/nomads-classifier-results/{}/?region=us-east-1&tab=overview".format(job_name)
-        send_email(url, email, pipeline)
-        
-    client = boto3.client("batch")
+
+    client = session.client("batch")
     response = client.describe_compute_environments(
         computeEnvironments=[
             'nomads-ce',
@@ -98,7 +98,7 @@ def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
                     'subnet-74f3d02f'
                 ],
                 'tags': {
-                    'Name': 'Batch Instance - C4OnDemand',
+                    'Name': 'Batch Instance - m5.4x.OnDemand',
                 },
             },
             serviceRole='AWSBatchServiceRole',
@@ -128,17 +128,18 @@ def submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range):
             register_nomads_unsupervised(client)
         if pipeline == "nomads-classifier":
             register_nomads_classifier(client)
-            
     response = client.submit_job(
         jobName=job_name,
         jobQueue='nomads-queue',
         jobDefinition=pipeline,
         containerOverrides={
             'vcpus': 1,
-            'memory': 2000,
+            'memory': 256000,
             'command': [
                 "python3",
                 "driver.py",
+                "--bucket",
+                bucket_name,
                 "--host",
                 "api.boss.neurodata.io",
                 "--token",
@@ -168,7 +169,7 @@ def register_nomads_unsupervised(client):
                 "Staring Container"
             ],
             'image': '389826612951.dkr.ecr.us-east-1.amazonaws.com/nomads-unsupervised',
-            'memory': 4000,
+            'memory': 256000,
             'vcpus': 1,
         },
         jobDefinitionName="nomads-unsupervised",
@@ -183,28 +184,23 @@ def register_nomads_classifier(client):
                 "Staring Container"
             ],
             'image': "389826612951.dkr.ecr.us-east-1.amazonaws.com/nomads-classifier",
-            'memory': 4000,
+            'memory': 256000,
             'vcpus': 1,
         },
         jobDefinitionName="nomads-classifier",
     )
 
-'''
-    Index Route 
-        Returns index.html template (loads web form)
-'''
-
 @app.route("/", methods = ["GET"])
 def index():
     client = boto3.client("batch")
     return render_template("index.html")
-    
-'''
-    Submit Route 
-        Upon form submission, this route submits a batch computing job and redirects back to home
-'''
+
 @app.route("/submit", methods = ["GET", "POST"])
 def submit():
+    aws_access = request.form["access"]
+    aws_secret = request.form["secret"]
+    aws_bucket = request.form["bucket"]
+
     token = request.form["token"]
     col = request.form["col"]
     exp = request.form["exp"]
@@ -215,7 +211,8 @@ def submit():
     pipeline = request.form["pipeline"]
     email = request.form["email"]
     host = "api.boss.neurodata.io"
-    submit_job(email, pipeline, token, col, exp, z_range, y_range, x_range)
+    session = create_aws_session(aws_access, aws_secret)
+    submit_job(session, aws_bucket, email, pipeline, token, col, exp, z_range, y_range, x_range)
 
 
     return redirect(url_for("index"))
